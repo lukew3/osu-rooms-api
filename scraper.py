@@ -1,11 +1,4 @@
-from flask import Flask
 import requests
-
-app = Flask(__name__)
-
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
 
 cookies = {
     'PS_DEVICEFEATURES': 'width:1920 height:1080 pixelratio:1 touch:0 geolocation:1 websockets:1 webworkers:1 datepicker:1 dtpicker:1 timepicker:1 dnd:1 sessionstorage:1 localstorage:1 history:1 canvas:1 svg:1 postmessage:1 hc:0 maf:0',
@@ -50,6 +43,3 @@ response = requests.post(
 
 with open('a.html', 'w') as f:
     f.write(str(response.content))
-
-if __name__ == '__main__':
-    app.run()
