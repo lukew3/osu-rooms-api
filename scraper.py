@@ -3,6 +3,9 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.firefox import GeckoDriverManager
+import time
+import re
+import calendar
 
 # Initialize service and driver
 service = FirefoxService(executable_path=GeckoDriverManager().install())
@@ -22,6 +25,8 @@ driver.switch_to.frame(frame)
 facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
 refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
 
+pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
+
 def get_room(facility_id):
     # Delete text currently in Facility ID input
     facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
@@ -30,11 +35,48 @@ def get_room(facility_id):
     # Request calendar refresh
     refresh_calendar_btn.click()
     # Wait for refresh
-    driver.implicitly_wait(2)
+    time.sleep(10)
+    # driver.implicitly_wait(10)
 
     # Parse into array of days containing arrays of intervals
       # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
     week = [[]] * 7
+    table = driver.find_element(By.ID, "WEEKLY_SCHED_HTMLAREA").find_element(By.TAG_NAME, 'tbody')
+    # Array of integers representing how many more rows a column is blocked for
+    rowspans = [0] * 8
+    next_rowspans = [0] * 8
+    # print(table.get_attribute('innerHTML'))
+    for row in table.find_elements(By.TAG_NAME, 'tr'):
+        # Decrement next_rowspans
+        for i in range(8):
+            if next_rowspans[i] != 0: next_rowspans[i] -= 1
+        # Move next_rowspans to rowspans
+        rowspans = next_rowspans.copy()
+
+        for col, cell in enumerate(row.find_elements(By.TAG_NAME, 'td')):
+            # Increment col by the number of blocked columns
+            j = 0
+            zero_count = -1
+            true_col = col
+            while zero_count != col:
+                # If a column doesn't have a rowspan, add a zero
+                if rowspans[j] == 0:
+                    zero_count += 1
+                else: # If a column has a rowspan, increment the col counter
+                    col += 1
+                print(j, col)
+                j += 1
+            print('---')
+
+            rowspan = cell.get_attribute('rowspan')
+            if rowspan: next_rowspans[true_col] += int(rowspan)
+            # If a cell has a color style on it...
+            if (cell.get_attribute('style') != ''):
+                print(cell.get_attribute('innerHTML'))
+                # Use regex to get start and end time
+                match = re.search(pattern, cell.get_attribute('innerHTML'))
+                print(calendar.day_name[true_col-1], match.group(1), match.group(2))
+                print('')
 
 # Get each room necessary
 get_room("DL0369")
