@@ -6,17 +6,16 @@ cursor = conn.cursor()
 cursor.execute("PRAGMA foreign_keys = ON")
 cursor.execute("""CREATE TABLE building
                   (
-                     id INTEGER PRIMARY KEY,
+                     building_number TEXT PRIMARY KEY,
                      name TEXT,
-                     building_number TEXT,
                      latitude REAL,
                      longitude REAL
                   )""")
 cursor.execute("""CREATE TABLE classroom
                   (
                      facility_id TEXT PRIMARY KEY,
-                     building_id INTEGER,
-                     FOREIGN KEY(building_id) REFERENCES building(id)
+                     building_number TEXT,
+                     FOREIGN KEY(building_number) REFERENCES building(building_number)
                   )""")
 cursor.execute("""CREATE TABLE block
                   (
@@ -29,10 +28,10 @@ cursor.execute("""CREATE TABLE block
 
 
 # https://www.latlong.net/convert-address-to-lat-long.html
-building1 = ('Dreese Labs', '279', 40.002300, -83.015877)
-cursor.execute("INSERT INTO building VALUES (NULL,?,?,?,?)", building1)
-classroom1 = ('DL0369', 1)
-classroom2 = ('DL0357', 1)
+building1 = ('279', 'Dreese Labs', 40.002300, -83.015877)
+cursor.execute("INSERT INTO building VALUES (?,?,?,?)", building1)
+classroom1 = ('DL0369', '279')
+classroom2 = ('DL0357', '279')
 cursor.execute("INSERT INTO classroom VALUES (?,?)", classroom1)
 cursor.execute("INSERT INTO classroom VALUES (?,?)", classroom2)
 """
