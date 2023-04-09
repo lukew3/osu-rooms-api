@@ -1816,3 +1816,72 @@ DevTools listening on ws://127.0.0.1:60605/devtools/browser/314a2b67-2aab-4809-9
 console.warn: services.settings: Ignoring preference override of remote settings server
 console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
 console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 603))
+1681019318439	Marionette	INFO	Stopped listening on port 38671
+Sandbox: Unexpected EOF, op 0 flags 00 path /proc/cpuinfo
+1681063615381	geckodriver	INFO	Listening on 127.0.0.1:50997
+1681063615885	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "36493" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofile3L6KD4"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+ATTENTION: default value of option mesa_glthread overridden by environment.
+1681063616701	Marionette	INFO	Marionette enabled
+1681063616708	Marionette	INFO	Listening on port 33439
+Read port: 33439
+WebDriver BiDi listening on ws://127.0.0.1:36493
+1681063616859	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofile3L6KD4/search.json.mozlz4", (void 0)))
+DevTools listening on ws://127.0.0.1:36493/devtools/browser/81943544-8ce0-4af4-ad69-b80ce2a27468
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 603))
+1681063697603	geckodriver	INFO	Listening on 127.0.0.1:57187
+1681063698111	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "40917" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofileCTNMhM"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+ATTENTION: default value of option mesa_glthread overridden by environment.
+1681063698888	Marionette	INFO	Marionette enabled
+1681063698893	Marionette	INFO	Listening on port 44051
+Read port: 44051
+WebDriver BiDi listening on ws://127.0.0.1:40917
+1681063699005	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileCTNMhM/search.json.mozlz4", (void 0)))
+DevTools listening on ws://127.0.0.1:40917/devtools/browser/c3b08ee2-ee60-49ab-a498-dda19f774503
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 603))
+1681063706492	Marionette	INFO	Stopped listening on port 33439
+1681063792847	geckodriver	INFO	Listening on 127.0.0.1:59355
+1681063793355	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "59609" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofilexp6S3X"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1681063793979	Marionette	INFO	Stopped listening on port 44051
+ATTENTION: default value of option mesa_glthread overridden by environment.
+1681063794232	Marionette	INFO	Marionette enabled
+1681063794237	Marionette	INFO	Listening on port 46127
+Read port: 46127
+WebDriver BiDi listening on ws://127.0.0.1:59609
+1681063794387	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilexp6S3X/search.json.mozlz4", (void 0)))
+DevTools listening on ws://127.0.0.1:59609/devtools/browser/a88fe7be-e720-4e9c-b899-491ea40f1a63
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 603))
+1681063868316	geckodriver	INFO	Listening on 127.0.0.1:42839
+1681063868823	mozrunner::runner	INFO	Running command: MOZ_CRASHREPORTER="1" MOZ_CRASHREPORTER_NO_REPORT="1" MOZ_CRASHREPORTER_SHUTDOWN="1" MOZ_NO_REMOTE="1" "/usr ... te" "--remote-debugging-port" "40485" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "/tmp/rust_mozprofilep91MHv"
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+ATTENTION: default value of option mesa_glthread overridden by environment.
+1681063869589	Marionette	INFO	Marionette enabled
+1681063869594	Marionette	INFO	Listening on port 34499
+Read port: 34499
+WebDriver BiDi listening on ws://127.0.0.1:40485
+1681063869708	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.error: ({})
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilep91MHv/search.json.mozlz4", (void 0)))
+DevTools listening on ws://127.0.0.1:40485/devtools/browser/7c27e9ce-a5e1-4c51-afc6-7cae5494e199
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+console.error: (new TypeError("lazy.AsyncShutdown.profileBeforeChange is undefined", "resource://services-settings/Database.jsm", 603))
+1681063876823	Marionette	INFO	Stopped listening on port 46127

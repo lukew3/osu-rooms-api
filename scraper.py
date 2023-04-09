@@ -63,10 +63,10 @@ def get_room(facility_id):
                 if rowspans[j] == 0:
                     zero_count += 1
                 else: # If a column has a rowspan, increment the col counter
-                    col += 1
-                print(j, col)
+                    true_col += 1
+                # print(j, col)
                 j += 1
-            print('---')
+            # print('---')
 
             rowspan = cell.get_attribute('rowspan')
             if rowspan: next_rowspans[true_col] += int(rowspan)
