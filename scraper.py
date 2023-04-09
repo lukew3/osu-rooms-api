@@ -27,6 +27,20 @@ refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_C
 
 pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
 
+def get_true_column(col, rowspans):
+    # Increment col by the number of blocked columns
+    j = 0
+    zero_count = -1
+    true_col = col
+    while zero_count != col:
+        # If a column doesn't have a rowspan, add a zero
+        if rowspans[j] == 0:
+            zero_count += 1
+        else: # If a column has a rowspan, increment the col counter
+            true_col += 1
+        j += 1
+    return true_col
+
 def get_room(facility_id):
     # Delete text currently in Facility ID input
     facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
@@ -54,25 +68,13 @@ def get_room(facility_id):
         rowspans = next_rowspans.copy()
 
         for col, cell in enumerate(row.find_elements(By.TAG_NAME, 'td')):
-            # Increment col by the number of blocked columns
-            j = 0
-            zero_count = -1
-            true_col = col
-            while zero_count != col:
-                # If a column doesn't have a rowspan, add a zero
-                if rowspans[j] == 0:
-                    zero_count += 1
-                else: # If a column has a rowspan, increment the col counter
-                    true_col += 1
-                # print(j, col)
-                j += 1
-            # print('---')
-
+            true_col = get_true_column(col, rowspans)
+            # Add this cell's rowspan to next_rowspans
             rowspan = cell.get_attribute('rowspan')
             if rowspan: next_rowspans[true_col] += int(rowspan)
             # If a cell has a color style on it...
             if (cell.get_attribute('style') != ''):
-                print(cell.get_attribute('innerHTML'))
+                # print(cell.get_attribute('innerHTML')) # Full content of each section
                 # Use regex to get start and end time
                 match = re.search(pattern, cell.get_attribute('innerHTML'))
                 print(calendar.day_name[true_col-1], match.group(1), match.group(2))
