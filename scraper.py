@@ -17,6 +17,7 @@ fireFoxOptions = webdriver.FirefoxOptions()
 fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
 driver = webdriver.Firefox(service=service, options=fireFoxOptions)
 
+print("Getting initial page...")
 MATRIX_URL = "https://courses.osu.edu/psp/csosuct/EMPLOYEE/PUB/c/OSR_CUSTOM_MENU.OSR_ROOM_MATRIX.GBL?"
 # Get base page
 driver.get(MATRIX_URL)
@@ -34,7 +35,7 @@ refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_C
 pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
 
 def get_true_column(col, rowspans):
-    # Increment col by the number of blocked columns
+    # Increment col by the number of blocked columns in front of it
     j = 0
     zero_count = -1
     true_col = col
@@ -62,6 +63,12 @@ def string_to_minutes(time_string):
 
 
 def get_room(facility_id):
+    print(f"Getting blocks in {facility_id}...")
+
+    # Re-get elements that we need to interact with (Not sure why these get disconnected after each run)
+    facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
+    refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
+
     # Delete text currently in Facility ID input
     facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
     # Type facility id into input
@@ -74,7 +81,6 @@ def get_room(facility_id):
 
     # Parse into array of days containing arrays of intervals
       # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
-    week = [[]] * 7
     table = driver.find_element(By.ID, "WEEKLY_SCHED_HTMLAREA").find_element(By.TAG_NAME, 'tbody')
     # Array of integers representing how many more rows a column is blocked for
     rowspans = [0] * 8
@@ -97,11 +103,14 @@ def get_room(facility_id):
                 # print(cell.get_attribute('innerHTML')) # Full content of each section
                 # Use regex to get start and end time
                 match = re.search(pattern, cell.get_attribute('innerHTML'))
-                print(calendar.day_name[true_col-1], match.group(1), match.group(2))
-                print('')
-                cursor.execute("INSERT INTO block VALUES (NULL,?,?,?,?)", (1, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
-                conn.commit()
+                #print(calendar.day_name[true_col-1], match.group(1), match.group(2))
+                #print('')
+                cursor.execute("INSERT INTO block VALUES (?,?,?,?)", (facility_id, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
+    conn.commit()
 
-# Get each room necessary
-get_room("DL0369")
+# Get each room in classroom table
+# get_room("DL0369")
+classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
+for fac in classrooms:
+    get_room(fac)
 
