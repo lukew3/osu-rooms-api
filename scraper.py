@@ -6,6 +6,10 @@ from webdriver_manager.firefox import GeckoDriverManager
 import time
 import re
 import calendar
+import sqlite3
+
+conn = sqlite3.connect('roomMatrix.db')
+cursor = conn.cursor()
 
 # Initialize service and driver
 service = FirefoxService(executable_path=GeckoDriverManager().install())
@@ -42,6 +46,20 @@ def get_true_column(col, rowspans):
             true_col += 1
         j += 1
     return true_col
+
+
+def string_to_minutes(time_string):
+    # Convert time string to minutes from midnight
+    # Time string is in format "HH:MM AM/PM"
+    # Split into hours and minutes
+    time_list = time_string.split(':')
+    # Convert hours to minutes
+    hours = int(time_list[0])
+    minutes = int(time_list[1][:-2])
+    if time_list[1][-2:] == 'PM':
+        hours += 12
+    return hours * 60 + minutes
+
 
 def get_room(facility_id):
     # Delete text currently in Facility ID input
@@ -81,6 +99,8 @@ def get_room(facility_id):
                 match = re.search(pattern, cell.get_attribute('innerHTML'))
                 print(calendar.day_name[true_col-1], match.group(1), match.group(2))
                 print('')
+                cursor.execute("INSERT INTO block VALUES (NULL,?,?,?,?)", (1, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
+                conn.commit()
 
 # Get each room necessary
 get_room("DL0369")

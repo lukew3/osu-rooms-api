@@ -29,14 +29,15 @@ cursor.execute("""CREATE TABLE block
                      FOREIGN KEY(classroom_id) REFERENCES classroom(id)
                   )""")
 
-"""
-building1 = ('Dreese Labs', '0', 3.14, 1.5)
+
+building1 = ('Dreese Labs', '279', 40.002300, -83.015877)
 cursor.execute("INSERT INTO building VALUES (NULL,?,?,?,?)", building1)
 classroom1 = (1, 'DL0369')
 cursor.execute("INSERT INTO classroom VALUES (NULL,?,?)", classroom1)
+"""
 block1 = (1, 1, 100, 150)
 block2 = (1, 2, 100, 180)
 cursor.execute("INSERT INTO block VALUES (NULL,?,?,?,?)", block1)
 cursor.execute("INSERT INTO block VALUES (NULL,?,?,?,?)", block2)
-conn.commit()
 """
+conn.commit()
