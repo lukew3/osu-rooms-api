@@ -9,7 +9,9 @@ import calendar
 
 # Initialize service and driver
 service = FirefoxService(executable_path=GeckoDriverManager().install())
-driver = webdriver.Firefox(service=service)
+fireFoxOptions = webdriver.FirefoxOptions()
+fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
+driver = webdriver.Firefox(service=service, options=fireFoxOptions)
 
 MATRIX_URL = "https://courses.osu.edu/psp/csosuct/EMPLOYEE/PUB/c/OSR_CUSTOM_MENU.OSR_ROOM_MATRIX.GBL?"
 # Get base page
