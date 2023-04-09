@@ -17,6 +17,7 @@ fireFoxOptions = webdriver.FirefoxOptions()
 fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
 driver = webdriver.Firefox(service=service, options=fireFoxOptions)
 
+print("Getting initial page...")
 MATRIX_URL = "https://courses.osu.edu/psp/csosuct/EMPLOYEE/PUB/c/OSR_CUSTOM_MENU.OSR_ROOM_MATRIX.GBL?"
 # Get base page
 driver.get(MATRIX_URL)
@@ -34,7 +35,7 @@ refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_C
 pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
 
 def get_true_column(col, rowspans):
-    # Increment col by the number of blocked columns
+    # Increment col by the number of blocked columns in front of it
     j = 0
     zero_count = -1
     true_col = col
@@ -62,7 +63,12 @@ def string_to_minutes(time_string):
 
 
 def get_room(facility_id):
-    print(facility_id)
+    print(f"Getting blocks in {facility_id}...")
+
+    # Re-get elements that we need to interact with (Not sure why these get disconnected after each run)
+    facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
+    refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
+
     # Delete text currently in Facility ID input
     facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
     # Type facility id into input
@@ -104,7 +110,7 @@ def get_room(facility_id):
 
 # Get each room in classroom table
 # get_room("DL0369")
-classrooms = cursor.execute("SELECT facility_id FROM classroom")
-for rm in classrooms:
-    print(rm[0])
-    get_room(rm[0])
+classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
+for fac in classrooms:
+    get_room(fac)
+
