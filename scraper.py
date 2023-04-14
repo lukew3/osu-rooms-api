@@ -5,7 +5,6 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.firefox import GeckoDriverManager
 import time
 import re
-import calendar
 import sqlite3
 
 conn = sqlite3.connect('roomMatrix.db')
