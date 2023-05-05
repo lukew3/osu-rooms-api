@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 import sqlite3
 import datetime
 
@@ -9,7 +9,7 @@ def hello_world():
     return "<p>Hello, World!</p>"
 
 # Given a room, return how long it is available from the current time
-@app.route("/classroom/<facility_id>")
+@app.route("/classroom/<facility_id>", methods=['GET'])
 def classroom(facility_id):
     now = datetime.datetime.now()
     dow = now.weekday()
@@ -27,6 +27,33 @@ def classroom(facility_id):
         elif pair[0] > now_minutes and pair[0] < soonest_start:
             soonest_start = pair[0]
     return f"Room available for {soonest_start-now_minutes} minutes"
+
+# Given a lat/long, return 3 closest buildings and their available rooms
+@app.route("/closest", methods=['GET'])
+def closest():
+    """
+    Takes 'lat', 'long' as float query parameters. Optional integer 'page' parameter.
+    Returns a json list of closest buildings and all available rooms with the amount of time they are available
+    returns something like: [
+        {
+            building: 'Dreese Labs',
+            rooms: [
+                {
+                    'room': 'DL0369',
+                    'availablefor': 100
+                }]}]
+    """
+    args = request.args
+    latitude = args.get("lat")
+    longitude = args.get("longitude")
+    buildings = []
+    for building in []:
+        rooms = []
+        for room in []:
+            rooms.append({'room': 'roomname', 'availablefor': 100})
+        buildings.append({'building': 'buildingname', 'rooms': rooms})
+    return jsonify(buildings=buildings)
+
 
 if __name__ == '__main__':
     app.run()
