@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.select import Select
 from webdriver_manager.firefox import GeckoDriverManager
 from bs4 import BeautifulSoup
 import requests
@@ -38,8 +39,40 @@ def get_blocks():
 
 
 def get_classrooms():
-    pass
+    driver.get(MATRIX_URL)
+    driver.implicitly_wait(15)
+    frame = driver.find_element(By.ID, "ptifrmtgtframe")
+    driver.switch_to.frame(frame)
+    facility_id_search_btn = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID$prompt")
+    facility_id_search_btn.click()
+    driver.implicitly_wait(10)
 
+    driver.switch_to.default_content()
+    frame2 = driver.find_element(By.ID, "ptModFrame_0")
+    driver.switch_to.frame(frame2)
+
+    facility_type_select = Select(driver.find_element(By.ID, "#ICKeySelect"))
+    facility_type_select.select_by_value('2')
+    building_id_input = driver.find_element(By.ID, "FACILITY_TBL_BLDG_CD")
+    building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
+
+    buildings = [bldg[0] for bldg in cursor.execute("SELECT building_number FROM building")]
+    for bldg_id in buildings:
+        building_id_input = driver.find_element(By.ID, "FACILITY_TBL_BLDG_CD")
+        building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
+        building_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
+        building_id_input.send_keys(bldg_id)
+        building_look_up_btn.click()
+        time.sleep(5)
+        try:
+            rooms_table = driver.find_element(By.ID, "PTSRCHRESULTS").find_element(By.TAG_NAME, "tbody")
+            for row in rooms_table.find_elements(By.TAG_NAME, 'tr')[1:]:
+                fac_id = row.find_element(By.TAG_NAME, 'td').find_element(By.TAG_NAME, 'span').text
+                print(fac_id)
+                cursor.execute("INSERT INTO classroom VALUES (?,?)", (fac_id, bldg_id))
+        except Exception:
+            print("No rooms found for building:", bldg_id)
+    conn.commit()
 
 def get_building_latlong(building_number):
     url = 'https://www.osu.edu/map/building/' + building_number
@@ -83,7 +116,7 @@ def get_buildings():
         building_name = a.text.rstrip()
 
         building = (building_number, building_name, lat, long)
-        print("Retrived building:", building_number, building_name)
+        print("Retrieved building:", building_number, building_name)
         cursor.execute("INSERT INTO building VALUES (?,?,?,?)", building)
     conn.commit()
 
@@ -168,10 +201,10 @@ def main():
     get_buildings()
 
     # Get list of classrooms
-    #get_classrooms()
+    get_classrooms()
 
     # Get blocks for each classroom
-    #get_blocks()
+    get_blocks()
 
 if __name__ == '__main__':
     main()
