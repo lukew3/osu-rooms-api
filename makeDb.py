@@ -28,13 +28,13 @@ cursor.execute("""CREATE TABLE block
 
 
 # https://www.latlong.net/convert-address-to-lat-long.html
+"""
 building1 = ('279', 'Dreese Labs', 40.002300, -83.015877)
 cursor.execute("INSERT INTO building VALUES (?,?,?,?)", building1)
 classroom1 = ('DL0369', '279')
 classroom2 = ('DL0357', '279')
 cursor.execute("INSERT INTO classroom VALUES (?,?)", classroom1)
 cursor.execute("INSERT INTO classroom VALUES (?,?)", classroom2)
-"""
 block1 = ('DL0369', 1, 100, 150)
 block2 = ('DL0369', 2, 100, 180)
 cursor.execute("INSERT INTO block VALUES (NULL,?,?,?,?)", block1)

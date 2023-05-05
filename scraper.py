@@ -3,6 +3,8 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.firefox import GeckoDriverManager
+from bs4 import BeautifulSoup
+import requests
 import time
 import re
 import sqlite3
@@ -27,11 +29,64 @@ driver.implicitly_wait(15)
 frame = driver.find_element(By.ID, "ptifrmtgtframe")
 driver.switch_to.frame(frame)
 
-# Get elements that we need to interact with
-facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
-refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
+availability_time_pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
 
-pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
+def get_blocks():
+    classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
+    for fac in classrooms:
+        get_room(fac)
+
+
+def get_classrooms():
+    pass
+
+
+def get_building_latlong(building_number):
+    url = 'https://www.osu.edu/map/building/' + building_number
+    driver.get(url)
+    driver.implicitly_wait(3)
+    building_frame = driver.find_element(By.TAG_NAME, "iframe")
+    driver.switch_to.frame(building_frame)
+    main_content = driver.find_element(By.ID, "maincontent").get_attribute('innerHTML')
+    #print(main_content)
+    soup = BeautifulSoup(main_content, 'html.parser').find_all("div", {"class": "column span-9 osu-margin-top"})[0].find_all("p")[0]
+    soup.find('strong').decompose()
+    address = soup.encode_contents().decode("utf-8").replace("<br/>", " ").split('\n')[-1].strip()
+    #print(address)
+    try:
+        req = requests.get("https://geocode.maps.co/search", params={'q': address}).json()[0]
+        # print(req['lat'], req['lon'])
+        return req['lat'], req['lon']
+    except Exception:
+        print(f"Could not get lat/long for #{building_number} at: {address}")
+        return 0, 0
+
+
+def get_buildings():
+    response = requests.post('https://www.osu.edu/map/buildingindex.php', data={'sort': 'letter', 'Submit': 'Sort Buildings'})
+
+    # parse results into a beautifulsoup object
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # go inside div id: buildingIndex and parse all the li tags
+    for li in soup.find(id="buildingIndex").find_all("li"):
+        # get the building number
+        number = li.find_all("strong")[1].text
+        building_number = re.search(r"\((\d+)\)", number).group(1)
+
+        # Get lat/long from building_number
+        lat, long = get_building_latlong(building_number)
+
+        # get the building name
+        a = li.find("a")
+        a.span.decompose()
+        building_name = a.text.rstrip()
+
+        building = (building_number, building_name, lat, long)
+        print("Retrived building:", building_number, building_name)
+        cursor.execute("INSERT INTO building VALUES (?,?,?,?)", building)
+    conn.commit()
+
 
 def get_true_column(col, rowspans):
     # Increment col by the number of blocked columns in front of it
@@ -65,7 +120,7 @@ def string_to_minutes(time_string):
 def get_room(facility_id):
     print(f"Getting blocks in {facility_id}...")
 
-    # Re-get elements that we need to interact with (Not sure why these get disconnected after each run)
+    # Get elements that we need to interact with (Not sure why these get disconnected after each run)
     facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
     refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
 
@@ -102,14 +157,21 @@ def get_room(facility_id):
             if (cell.get_attribute('style') != ''):
                 # print(cell.get_attribute('innerHTML')) # Full content of each section
                 # Use regex to get start and end time
-                match = re.search(pattern, cell.get_attribute('innerHTML'))
+                match = re.search(availability_time_pattern, cell.get_attribute('innerHTML'))
                 #print(calendar.day_name[true_col-1], match.group(1), match.group(2))
                 #print('')
                 cursor.execute("INSERT INTO block VALUES (?,?,?,?)", (facility_id, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
     conn.commit()
 
-# Get each room in classroom table
-# get_room("DL0369")
-classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
-for fac in classrooms:
-    get_room(fac)
+def main():
+    # Get list of buildings
+    get_buildings()
+
+    # Get list of classrooms
+    #get_classrooms()
+
+    # Get blocks for each classroom
+    #get_blocks()
+
+if __name__ == '__main__':
+    main()
