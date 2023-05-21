@@ -69,8 +69,51 @@ def get_blocks():
     driver.switch_to.frame(frame)
 
     classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
-    for fac in classrooms:
-        get_room(fac)
+    for facility_id in classrooms:
+        print(f"Getting blocks in {facility_id}...")
+
+        # Get elements that we need to interact with (Not sure why these get disconnected after each run)
+        facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
+        refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
+
+        # Delete text currently in Facility ID input
+        facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
+        # Type facility id into input
+        facility_id_input.send_keys(facility_id)
+        # Request calendar refresh
+        refresh_calendar_btn.click()
+        # Wait for refresh
+        time.sleep(10)
+        # driver.implicitly_wait(10)
+
+        # Parse into array of days containing arrays of intervals
+          # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
+        table = driver.find_element(By.ID, "WEEKLY_SCHED_HTMLAREA").find_element(By.TAG_NAME, 'tbody')
+        # Array of integers representing how many more rows a column is blocked for
+        rowspans = [0] * 8
+        next_rowspans = [0] * 8
+        # print(table.get_attribute('innerHTML'))
+        for row in table.find_elements(By.TAG_NAME, 'tr'):
+            # Decrement next_rowspans
+            for i in range(8):
+                if next_rowspans[i] != 0: next_rowspans[i] -= 1
+            # Move next_rowspans to rowspans
+            rowspans = next_rowspans.copy()
+
+            for col, cell in enumerate(row.find_elements(By.TAG_NAME, 'td')):
+                true_col = get_true_column(col, rowspans)
+                # Add this cell's rowspan to next_rowspans
+                rowspan = cell.get_attribute('rowspan')
+                if rowspan: next_rowspans[true_col] += int(rowspan)
+                # If a cell has a color style on it...
+                if (cell.get_attribute('style') != ''):
+                    # print(cell.get_attribute('innerHTML')) # Full content of each section
+                    # Use regex to get start and end time
+                    match = re.search(availability_time_pattern, cell.get_attribute('innerHTML'))
+                    #print(calendar.day_name[true_col-1], match.group(1), match.group(2))
+                    #print('')
+                    cursor.execute("INSERT INTO block VALUES (?,?,?,?)", (facility_id, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
+        conn.commit()
 
 
 def get_classrooms():
@@ -185,52 +228,6 @@ def string_to_minutes(time_string):
     # I would add a condition for -12 hours at 12:XX AM, but this is unreachable because we are only querying between 8am and 10pm
     return hours * 60 + minutes
 
-
-def get_room(facility_id):
-    print(f"Getting blocks in {facility_id}...")
-
-    # Get elements that we need to interact with (Not sure why these get disconnected after each run)
-    facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
-    refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
-
-    # Delete text currently in Facility ID input
-    facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
-    # Type facility id into input
-    facility_id_input.send_keys(facility_id)
-    # Request calendar refresh
-    refresh_calendar_btn.click()
-    # Wait for refresh
-    time.sleep(10)
-    # driver.implicitly_wait(10)
-
-    # Parse into array of days containing arrays of intervals
-      # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
-    table = driver.find_element(By.ID, "WEEKLY_SCHED_HTMLAREA").find_element(By.TAG_NAME, 'tbody')
-    # Array of integers representing how many more rows a column is blocked for
-    rowspans = [0] * 8
-    next_rowspans = [0] * 8
-    # print(table.get_attribute('innerHTML'))
-    for row in table.find_elements(By.TAG_NAME, 'tr'):
-        # Decrement next_rowspans
-        for i in range(8):
-            if next_rowspans[i] != 0: next_rowspans[i] -= 1
-        # Move next_rowspans to rowspans
-        rowspans = next_rowspans.copy()
-
-        for col, cell in enumerate(row.find_elements(By.TAG_NAME, 'td')):
-            true_col = get_true_column(col, rowspans)
-            # Add this cell's rowspan to next_rowspans
-            rowspan = cell.get_attribute('rowspan')
-            if rowspan: next_rowspans[true_col] += int(rowspan)
-            # If a cell has a color style on it...
-            if (cell.get_attribute('style') != ''):
-                # print(cell.get_attribute('innerHTML')) # Full content of each section
-                # Use regex to get start and end time
-                match = re.search(availability_time_pattern, cell.get_attribute('innerHTML'))
-                #print(calendar.day_name[true_col-1], match.group(1), match.group(2))
-                #print('')
-                cursor.execute("INSERT INTO block VALUES (?,?,?,?)", (facility_id, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
-    conn.commit()
 
 def main():
     if os.path.isfile('roomMatrix.db'):
