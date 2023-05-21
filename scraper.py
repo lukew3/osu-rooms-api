@@ -9,6 +9,8 @@ import requests
 import time
 import re
 import sqlite3
+import os.path
+  
 
 conn = sqlite3.connect('roomMatrix.db')
 cursor = conn.cursor()
@@ -31,6 +33,33 @@ frame = driver.find_element(By.ID, "ptifrmtgtframe")
 driver.switch_to.frame(frame)
 
 availability_time_pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
+
+
+def make_db():
+    cursor.execute("PRAGMA foreign_keys = ON")
+    cursor.execute("""CREATE TABLE building
+                      (
+                         building_number TEXT PRIMARY KEY,
+                         name TEXT,
+                         latitude REAL,
+                         longitude REAL
+                      )""")
+    cursor.execute("""CREATE TABLE classroom
+                      (
+                         facility_id TEXT PRIMARY KEY,
+                         building_number TEXT,
+                         FOREIGN KEY(building_number) REFERENCES building(building_number)
+                      )""")
+    cursor.execute("""CREATE TABLE block
+                      (
+                         facility_id TEXT,
+                         day_of_week INTEGER,
+                         start_minutes INTEGER,
+                         end_minutes INTEGER,
+                         FOREIGN KEY(facility_id) REFERENCES classroom(facility_id)
+                      )""")
+    conn.commit()
+
 
 def get_blocks():
     classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
@@ -197,6 +226,25 @@ def get_room(facility_id):
     conn.commit()
 
 def main():
+    if os.path.isfile('roomMatrix.db'):
+        print("Database already exists. How do you wish to continue:")
+        print("1. Delete and recreate database")
+        print("2. Use existing database")
+        print("3. Exit")
+        choice = input("> ")
+        if choice == '1':
+            os.remove('roomMatrix.db')
+            global conn, cursor
+            conn = sqlite3.connect('roomMatrix.db')
+            cursor = conn.cursor()
+            make_db()
+        elif choice == '2':
+            pass
+        elif choice == '3':
+            exit()
+    else:
+        make_db()
+
     # Get list of buildings
     get_buildings()
 
