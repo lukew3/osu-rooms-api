@@ -69,11 +69,9 @@ def closest():
 
     for building in closest_buildings:
         rooms = cursor.execute(
-            "SELECT * FROM classroom WHERE building_number=?", [building[0]]
+            "SELECT * FROM classroom WHERE building_number=?", (building[0])
         )
-        result_rooms = []  # rooms to be added to the final result
-        for room in rooms:
-            result_rooms.append({"room": room[0], "availablefor": classroom(room[0])})
+        result_rooms = [{"room": room[0], "availablefor": classroom(room[0])} for room in rooms] # rooms to be added to the final result
         result.append({"building": building[1], "rooms": result_rooms})
 
     conn.close()
