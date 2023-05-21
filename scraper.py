@@ -18,7 +18,7 @@ cursor = conn.cursor()
 # Initialize service and driver
 service = FirefoxService(executable_path=GeckoDriverManager().install())
 fireFoxOptions = webdriver.FirefoxOptions()
-fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
+# fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
 driver = webdriver.Firefox(service=service, options=fireFoxOptions)
 
 print("Getting initial page...")
@@ -62,6 +62,12 @@ def make_db():
 
 
 def get_blocks():
+    # Load the base page
+    driver.get(MATRIX_URL)
+    driver.implicitly_wait(15)
+    frame = driver.find_element(By.ID, "ptifrmtgtframe")
+    driver.switch_to.frame(frame)
+
     classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
     for fac in classrooms:
         get_room(fac)
@@ -102,6 +108,7 @@ def get_classrooms():
         except Exception:
             print("No rooms found for building:", bldg_id)
     conn.commit()
+
 
 def get_building_latlong(building_number):
     url = 'https://www.osu.edu/map/building/' + building_number
