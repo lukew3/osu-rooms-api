@@ -34,7 +34,7 @@ driver.implicitly_wait(15)
 frame = driver.find_element(By.ID, "ptifrmtgtframe")
 driver.switch_to.frame(frame)
 
-availability_time_pattern = r"<br>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br>"
+availability_time_pattern = r"<br/>(\d{1,2}:\d{2}[AP]M) - (\d{1,2}:\d{2}[AP]M)<br/>"
 
 
 def make_db():
@@ -91,27 +91,28 @@ def get_blocks():
         # Parse into array of days containing arrays of intervals
           # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
         table = driver.find_element(By.ID, "WEEKLY_SCHED_HTMLAREA").find_element(By.TAG_NAME, 'tbody')
+        soup_table = BeautifulSoup(table.get_attribute('innerHTML'), 'html.parser')
         # Array of integers representing how many more rows a column is blocked for
         rowspans = [0] * 8
         next_rowspans = [0] * 8
         # print(table.get_attribute('innerHTML'))
-        for row in table.find_elements(By.TAG_NAME, 'tr'):
+        for row in soup_table.findAll('tr'):
             # Decrement next_rowspans
             for i in range(8):
                 if next_rowspans[i] != 0: next_rowspans[i] -= 1
             # Move next_rowspans to rowspans
             rowspans = next_rowspans.copy()
 
-            for col, cell in enumerate(row.find_elements(By.TAG_NAME, 'td')):
+            for col, cell in enumerate(row.findAll('td')):
                 true_col = get_true_column(col, rowspans)
                 # Add this cell's rowspan to next_rowspans
-                rowspan = cell.get_attribute('rowspan')
-                if rowspan: next_rowspans[true_col] += int(rowspan)
+                if 'rowspan' in cell.attrs:
+                    next_rowspans[true_col] += int(cell['rowspan'])
                 # If a cell has a color style on it...
-                if (cell.get_attribute('style') != ''):
+                if 'style' in cell.attrs and cell['style'] != '':
                     # print(cell.get_attribute('innerHTML')) # Full content of each section
                     # Use regex to get start and end time
-                    match = re.search(availability_time_pattern, cell.get_attribute('innerHTML'))
+                    match = re.search(availability_time_pattern, cell.encode_contents().decode("utf-8"))
                     #print(calendar.day_name[true_col-1], match.group(1), match.group(2))
                     #print('')
                     cursor.execute("INSERT INTO block VALUES (?,?,?,?)", (facility_id, true_col-1, string_to_minutes(match.group(1)), string_to_minutes(match.group(2))))
