@@ -7,12 +7,6 @@ You should set up a venv and install requirements with:
 ```
 pip install -r requirements.txt
 ```
-### Setup db
-Run
-```
-python makeDb.py
-```
-to create the `roomMatrix.db` sqlite database.
 ### Scrape data
 Run
 ```
