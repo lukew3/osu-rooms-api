@@ -3,8 +3,10 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.firefox import GeckoDriverManager
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 import requests
 import time
 import re
@@ -18,7 +20,7 @@ cursor = conn.cursor()
 # Initialize service and driver
 service = FirefoxService(executable_path=GeckoDriverManager().install())
 fireFoxOptions = webdriver.FirefoxOptions()
-# fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
+fireFoxOptions.add_argument('--headless') # Comment this line to see the browser gui
 driver = webdriver.Firefox(service=service, options=fireFoxOptions)
 
 print("Getting initial page...")
@@ -69,12 +71,13 @@ def get_blocks():
     driver.switch_to.frame(frame)
 
     classrooms = [fac[0] for fac in cursor.execute("SELECT facility_id FROM classroom")]
-    for facility_id in classrooms:
+    for facility_id in tqdm(classrooms):
         print(f"Getting blocks in {facility_id}...")
 
         # Get elements that we need to interact with (Not sure why these get disconnected after each run)
         facility_id_input = driver.find_element(By.ID, "OSR_DERIVED_RM_FACILITY_ID")
         refresh_calendar_btn = driver.find_element(By.ID, "DERIVED_CLASS_S_SSR_REFRESH_CAL")
+        wait_icon = driver.find_element(By.ID, "WAIT_win0")
 
         # Delete text currently in Facility ID input
         facility_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
@@ -82,9 +85,8 @@ def get_blocks():
         facility_id_input.send_keys(facility_id)
         # Request calendar refresh
         refresh_calendar_btn.click()
-        # Wait for refresh
-        time.sleep(10)
-        # driver.implicitly_wait(10)
+        # Wait for page to load by waiting until the wait icon is not being displayed. If not loaded in 15 seconds, throw an error
+        WebDriverWait(driver, timeout=15).until_not(lambda x: wait_icon.is_displayed())
 
         # Parse into array of days containing arrays of intervals
           # Each interval added will be a tuple of the minutes from 12 midnight that it starts and the minutes from midnight when it ends
@@ -135,7 +137,7 @@ def get_classrooms():
     building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
 
     buildings = [bldg[0] for bldg in cursor.execute("SELECT building_number FROM building")]
-    for bldg_id in buildings:
+    for bldg_id in tqdm(buildings):
         building_id_input = driver.find_element(By.ID, "FACILITY_TBL_BLDG_CD")
         building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
         building_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
@@ -181,7 +183,7 @@ def get_buildings():
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # go inside div id: buildingIndex and parse all the li tags
-    for li in soup.find(id="buildingIndex").find_all("li"):
+    for li in tqdm(soup.find(id="buildingIndex").find_all("li")):
         # get the building number
         number = li.find_all("strong")[1].text
         building_number = re.search(r"\((\d+)\)", number).group(1)
