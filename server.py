@@ -12,7 +12,7 @@ def hello_world():
 
 # Given a room, return how long it is available from the current time
 @app.route("/classroom/<facility_id>", methods=["GET"])
-def classroom(facility_id):
+def room_available_for(facility_id):
     now = datetime.datetime.now()
     dow = now.weekday()
     now_minutes = now.hour * 60 + now.minute
@@ -28,7 +28,7 @@ def classroom(facility_id):
     )
     for pair in data:
         if pair[0] < now_minutes and pair[1] > now_minutes:
-            return f"Classroom in use until {pair[1]//60}:{pair[1]%60}"
+            return f"Classroom in use until {(pair[1]//60):02}:{(pair[1]%60):02}"
         elif pair[0] > now_minutes and pair[0] < soonest_start:
             soonest_start = pair[0]
     return soonest_start - now_minutes
@@ -68,10 +68,8 @@ def closest():
     result = []  # final result to be returned
 
     for building in closest_buildings:
-        rooms = cursor.execute(
-            "SELECT * FROM classroom WHERE building_number=?", (building[0])
-        )
-        result_rooms = [{"room": room[0], "availablefor": classroom(room[0])} for room in rooms] # rooms to be added to the final result
+        rooms = cursor.execute("SELECT * FROM classroom WHERE building_number=?", [building[0]])
+        result_rooms = [{"room": room[0], "availablefor": room_available_for(room[0])} for room in rooms] # rooms to be added to the final result
         result.append({"building": building[1], "rooms": result_rooms})
 
     conn.close()
@@ -99,4 +97,4 @@ def euclidian_distance(x1, y1, x2, y2):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
