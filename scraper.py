@@ -12,7 +12,7 @@ import time
 import re
 import sqlite3
 import os.path
-  
+
 
 conn = sqlite3.connect('roomMatrix.db')
 cursor = conn.cursor()
@@ -135,20 +135,20 @@ def get_classrooms():
     facility_type_select = Select(driver.find_element(By.ID, "#ICKeySelect"))
     facility_type_select.select_by_value('2')
     building_id_input = driver.find_element(By.ID, "FACILITY_TBL_BLDG_CD")
-    building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
 
     buildings = [bldg[0] for bldg in cursor.execute("SELECT building_number FROM building")]
     for bldg_id in tqdm(buildings):
         building_id_input = driver.find_element(By.ID, "FACILITY_TBL_BLDG_CD")
-        building_look_up_btn = driver.find_element(By.ID, "#ICSearch")
         building_id_input.send_keys(Keys.CONTROL, "a")  # or Keys.COMMAND on Mac
         building_id_input.send_keys(bldg_id)
-        building_look_up_btn.click()
-        time.sleep(5)
+        driver.find_element(By.ID, "#ICSearch").click()
+
+        WebDriverWait(driver, timeout=10).until_not(lambda x: driver.find_element(By.ID, "WAIT_win0").is_displayed())
+
         try:
-            rooms_table = driver.find_element(By.ID, "PTSRCHRESULTS").find_element(By.TAG_NAME, "tbody")
-            for row in rooms_table.find_elements(By.TAG_NAME, 'tr')[1:]:
-                fac_id = row.find_element(By.TAG_NAME, 'td').find_element(By.TAG_NAME, 'span').text
+            soup_rooms_table = BeautifulSoup(driver.page_source, 'html.parser').find('table', {'id': 'PTSRCHRESULTS'}).find('tbody')
+            for row in soup_rooms_table.find_all('tr')[1:]:
+                fac_id = row.find('td').find('span').get_text()
                 print(fac_id)
                 cursor.execute("INSERT INTO classroom VALUES (?,?)", (fac_id, bldg_id))
         except Exception:
@@ -163,14 +163,11 @@ def get_building_latlong(building_number):
     building_frame = driver.find_element(By.TAG_NAME, "iframe")
     driver.switch_to.frame(building_frame)
     main_content = driver.find_element(By.ID, "maincontent").get_attribute('innerHTML')
-    #print(main_content)
     soup = BeautifulSoup(main_content, 'html.parser').find_all("div", {"class": "column span-9 osu-margin-top"})[0].find_all("p")[0]
     soup.find('strong').decompose()
     address = soup.encode_contents().decode("utf-8").replace("<br/>", " ").split('\n')[-1].strip()
-    #print(address)
     try:
         req = requests.get("https://geocode.maps.co/search", params={'q': address}).json()[0]
-        # print(req['lat'], req['lon'])
         return req['lat'], req['lon']
     except Exception:
         print(f"Could not get lat/long for #{building_number} at: {address}")
