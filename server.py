@@ -28,13 +28,15 @@ def room_available_for(facility_id):
     )
     for pair in data:
         if pair[0] < now_minutes and pair[1] > now_minutes:
-            return f"Classroom in use until {(pair[1]//60):02}:{(pair[1]%60):02}"
+            # Returns negative number of minutes until available
+            return now_minutes - pair[1]
         elif pair[0] > now_minutes and pair[0] < soonest_start:
             soonest_start = pair[0]
+    # Returns number of minutes until next block starts or midnight
     return soonest_start - now_minutes
 
 
-# Given a lat/long and optional page paramter, return closest buildings on that page and their available rooms
+# Given a lat/long and optional page paramter, return closest buildings on that page and the amount of time that each room is available for
 @app.route("/closest", methods=["GET"])
 def closest():
     """
