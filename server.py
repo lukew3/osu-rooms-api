@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from math import ceil
 import sqlite3
 import datetime
 
@@ -70,8 +71,13 @@ def closest():
     result = []  # final result to be returned
 
     for building in closest_buildings:
-        rooms = cursor.execute("SELECT * FROM classroom WHERE building_number=?", [building[0]])
-        result_rooms = [{"room": room[0], "availablefor": room_available_for(room[0])} for room in rooms] # rooms to be added to the final result
+        rooms = cursor.execute(
+            "SELECT * FROM classroom WHERE building_number=?", [building[0]]
+        )
+        result_rooms = [
+            {"room": room[0], "availablefor": room_available_for(room[0])}
+            for room in rooms
+        ]  # rooms to be added to the final result
         result.append({"building": building[1], "rooms": result_rooms})
 
     conn.close()
@@ -88,9 +94,10 @@ def get_closest_by_page(buildings, lat, long, page):
     buildings.sort(
         key=lambda building: euclidian_distance(building[2], building[3], lat, long)
     )
-    if (page + 1) * 3 > len(buildings):
-        return buildings[page * 3 :]
-    return buildings[page * 3 : (page + 1) * 3]
+    # indexable pages falls within [0, cieling(len(buildings)/3)-1]
+    if page < 0 or page > (ceil(len(buildings) / 3) - 1):
+        return []
+    return buildings[page * 3 : min((page + 1) * 3, len(buildings))]
 
 
 # define euclidian distance between two points
