@@ -50,6 +50,7 @@ def make_db():
                       (
                          facility_id TEXT PRIMARY KEY,
                          building_number TEXT,
+                         facility_type TEXT,
                          FOREIGN KEY(building_number) REFERENCES building(building_number)
                       )""")
     cursor.execute("""CREATE TABLE block
@@ -149,8 +150,8 @@ def get_classrooms():
             soup_rooms_table = BeautifulSoup(driver.page_source, 'html.parser').find('table', {'id': 'PTSRCHRESULTS'}).find('tbody')
             for row in soup_rooms_table.find_all('tr')[1:]:
                 fac_id = row.find('td').find('span').get_text()
-                print(fac_id)
-                cursor.execute("INSERT INTO classroom VALUES (?,?)", (fac_id, bldg_id))
+                fac_type = row.find_all('td')[-1].find('span').get_text()
+                cursor.execute("INSERT INTO classroom VALUES (?,?,?)", (fac_id, bldg_id, fac_type))
         except Exception:
             print("No rooms found for building:", bldg_id)
     conn.commit()
@@ -256,7 +257,7 @@ def main():
     get_classrooms()
 
     # Get blocks for each classroom
-    get_blocks()
+    #get_blocks()
 
 if __name__ == '__main__':
     main()
